@@ -28,6 +28,13 @@ def read_users():
     return {"users": database}
 
 
+@app.get("/user/{user_id}", response_model=UserPublic)
+def get_user(user_id: int):
+    validate_user_id(user_id=user_id)
+    user = database[user_id - 1]
+    return UserPublic(**user.model_dump())
+
+
 @app.put("/users/{user_id}", response_model=UserPublic)
 def update_user(user_id: int, user: UserSchema):
     if user_id > len(database) or user_id < 1:
@@ -51,3 +58,10 @@ def delete_user(user_id: int):
     del database[user_id - 1]
 
     return {"message": "User deleted"}
+
+
+def validate_user_id(user_id: int):
+    if user_id > len(database) or user_id < 1:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail="User not found"
+        )
